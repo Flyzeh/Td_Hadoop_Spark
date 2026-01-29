@@ -33,7 +33,7 @@
 ## 3 - Spark
 
 - Lancer le terminal scala : ```./opt/spark-3.1.2/bin/spark-shell``` -> être dans le namenode
-- Lancer le jar avec spark : ```/opt/spark-3.1.2/bin/spark-submit --class spark.AppSpark \tmp\TD.jar```
+- Lancer le jar avec spark : ```/opt/spark-3.1.2/bin/spark-submit --class spark.AppSpark /tmp/TD.jar```
 
 # Code
 
