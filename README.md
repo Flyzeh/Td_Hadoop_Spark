@@ -73,3 +73,132 @@ Cette méthode est appelée une fois par clé unique après que Hadoop ait regro
     - key : le mot à compter
     - values : toutes les valeurs associées à ce mot
     - context : objet Hadoop pour écrire les résultats finaux
+
+# Spark Shell
+
+- Charger le répertoire Gutenberg
+```
+val rdd_gut = sc.textFile("hdfs://localhost:9000/user/root/gutenberg")
+```
+
+- Compter le nombre de lignes :
+```
+rdd_gut.count()
+```
+
+- Afficher les 3 premières lignes :
+```
+rdd_gut.take(3).foreach(println)
+```
+
+- Nombre de caractères total :
+```
+val nbChars = rdd_gut.map(line => line.length).reduce(_ + _)
+nbChars
+```
+
+## WordCounts
+- Transformer chaque ligne en mots (flatMap)
+```
+val words = rdd_gut.flatMap(line => line.split("\\W+")) // Sépare par tout caractère non alphabétique
+```
+
+- Créer les couples (word, 1)
+```
+val wordPairs = words.map(word => (word.toLowerCase, 1)) // Mettre en minuscule pour uniformiser
+```
+
+- Somme des occurrences (reduceByKey)
+```
+val wordCount = wordPairs.reduceByKey(_ + _) // Somme les valeurs pour chaque mot
+```
+
+- Afficher le résultat
+```
+wordCount.take(20).foreach(println) // Affiche 20 mots avec leur compte
+
+wordCount.map{case (word, count) => (count, word)}
+         .sortByKey(false)
+         .take(20)
+         .foreach(println)
+```
+
+- Une ligne
+```
+sc.textFile("hdfs://localhost:9000/user/root/gutenberg")
+  .flatMap(line => line.split("\\W+"))                  // Découpe chaque ligne en mots
+  .map(word => (word.toLowerCase, 1))                  // Crée le couple (mot, 1)
+  .reduceByKey(_ + _)                                  // Somme les occurrences par mot
+  .sortBy(_._2, false)                                 // Trie par fréquence décroissante
+  .take(20)                                            // Prend les 20 mots les plus fréquents
+  .foreach(println)                                    // Affiche le résultat
+```
+
+- UP
+```
+val rdd_clean = sc.textFile("hdfs://localhost:9000/user/root/gutenberg")
+  .map(line => line
+    .replaceAll("\\[.*?\\]", "")   // Supprime ce qui est entre crochets [scène, mise en scène]
+    .replaceAll("(?i)Acte \\d+", "")  // Supprime "Acte 1", "Acte 2" etc. (insensible à la casse)
+    .replaceAll("(?i)Page \\d+", "")  // Supprime "Page 1", "Page 2" etc.
+  )
+  .filter(_.trim.nonEmpty) // Supprime les lignes vides
+```
+
+## Anagramme
+
+```
+val words = rdd_clean.flatMap(line => line.split("\\W+"))
+  .map(_.toLowerCase)
+  .filter(_.length > 1)  // on ignore les mots d'une seule lettre
+
+val anagrams = words
+  .map(word => (word.sorted, word))       // (mot_trié, mot)
+  .groupByKey()
+  .mapValues(_.toSet)                     // enlève les doublons
+  .filter(_._2.size > 1)                  // garde les vrais anagrammes
+
+anagrams
+  .map{case (sorted, set) => set.mkString(",")}
+  .saveAsTextFile("hdfs://localhost:9000/user/root/anagrams")
+```
+
+## Hits
+
+```
+val logs = sc.textFile("hdfs://localhost:9000/user/root/logs")
+
+val hitsPerQuarter = logs.flatMap(line => {
+    val timePattern = ".*?(\\d{2}):(\\d{2}):(\\d{2}).*".r
+    line match {
+        case timePattern(hh, mm, ss) =>
+            val hour = hh.toInt
+            val minute = mm.toInt
+            if(hour >= 10 && hour < 23) {
+                val quarter = (minute / 15) * 15
+                Some(f"$hour%02d:$quarter%02d")
+            } else None
+        case _ => None
+    }
+})
+.map(q => (q, 1))
+.reduceByKey(_ + _)
+.sortByKey()
+```
+
+## Index
+
+```
+val targetWord = "burglary" // peut venir d’un argument
+
+val rdd_index = rdd_clean.zipWithIndex()  // donne (ligne, index)
+  .flatMap{case (line, idx) =>
+      if(line.toLowerCase.contains(targetWord.toLowerCase)) Some((targetWord, idx + 1))
+      else None
+  }
+  .groupByKey()
+
+rdd_index
+  .map{case (word, indices) => s"$word : ${indices.mkString(",")}"}
+  .saveAsTextFile("hdfs://localhost:9000/user/root/index")
+```
