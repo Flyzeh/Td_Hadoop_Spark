@@ -28,6 +28,7 @@
     - Créer le jar : ```jar cvf TD.jar TD ``` -> attention à bien être présent dans C:\Users\giani\IdeaProjects\MapReduce\out\production\MapReduce
 - Vérifier le résultat : ```hdfs dfs -cat /user/root/TD/part-r-00000``` ou ```hdfs dfs -head /user/root/TD/part-r-00000```
 - Récupérer le fichier : ```hdfs dfs -get /user/root/TD/part-r-00000 /tmp/TD.txt```
+- Supprimer un fichier : ```hdfs dfs -rm -r /user/root/TD```
 
 ## 3 - Spark
 
