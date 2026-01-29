@@ -5,6 +5,8 @@ import org.apache.log4j.Logger;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
+import org.apache.spark.sql.expressions.Window;
+import org.apache.spark.sql.expressions.WindowSpec;
 import org.apache.spark.sql.functions;
 
 import java.time.LocalDate;
@@ -94,14 +96,6 @@ public class AppSpark
                         min("HAUTEUR (m)").alias("Hauteur_min")
                 );
 
-
-        // DF Velib.csv
-        Dataset<Row> velibDF = spark.read()
-                .option("header", "true")
-                .option("inferSchema", "true")
-                .option("delimiter", ";")
-                .csv("hdfs://namenode:9000/user/root/velib/velib.csv");
-
         // DF evenement.csv
         Dataset<Row> evenementDF = spark.read()
                 .option("header", "true")
@@ -109,22 +103,50 @@ public class AppSpark
                 .option("delimiter", ";")
                 .csv("hdfs://namenode:9000/user/root/evenement/evenement.csv");
 
+        /// Vélib
+        Dataset<Row> dfVelib = spark.read()
+                .option("header", "true")
+                .option("sep", ";")
+                .csv("velib.csv")
+                .withColumn("coord_v", split(col("Coordonnées géographiques"), ","))
+                .withColumn("lat_v", col("coord_v").getItem(0).cast("double"))
+                .withColumn("lon_v", col("coord_v").getItem(1).cast("double"))
+                .select(col("Nom de la station"), col("lat_v"), col("lon_v"));
+
+// Événements
         Dataset<Row> events = evenementDF
-                .withColumn("Date de début",
-                        to_date(split(col("Date de début"), "T").getItem(0)))
-                .withColumn("Date de fin",
-                        to_date(split(col("Date de fin"), "T").getItem(0)));
+                .withColumn("Date de début", to_date(split(col("Date de début"), "T").getItem(0)))
+                .withColumn("Date de fin", to_date(split(col("Date de fin"), "T").getItem(0)))
+                .withColumn("coord_e", split(col("Coordonnées géographiques"), ","))
+                .withColumn("lat_e", col("coord_e").getItem(0).cast("double"))
+                .withColumn("lon_e", col("coord_e").getItem(1).cast("double"));
 
-
+// Filtrage mois/année
         int mois = 8;
         int annee = 2025;
-
         LocalDate target = LocalDate.of(annee, mois, 1);
 
         Dataset<Row> filteredEvents = events.filter(
                 col("Date de début").leq(lit(target))
                         .and(col("Date de fin").geq(lit(target)))
         );
+
+        Dataset<Row> filteredEventsParis = filteredEvents
+                .filter(col("Lieu / Adresse").contains("Paris"));
+
+        Dataset<Row> joined = filteredEventsParis.crossJoin(broadcast(dfVelib))
+                .withColumn("diff",
+                        pow(col("lat_e").minus(col("lat_v")), 2)
+                                .plus(pow(col("lon_e").minus(col("lon_v")), 2))
+                );
+
+// Top 1 station proche
+        WindowSpec w = Window.partitionBy("Titre").orderBy(col("diff"));
+        Dataset<Row> result = joined.withColumn("rang", row_number().over(w))
+                .filter(col("rang").equalTo(1))
+                .select("Titre", "Date de début", "Nom de la station");
+
+        result.show(false);
 
 
         //System.out.println(nbAbri);
