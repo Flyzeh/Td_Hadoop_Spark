@@ -3,13 +3,13 @@
 ## 1 - Docker
 
 - Localisation : Downloads\Docker-Hadoop\Docker-Hadoop
-- Lancement : ```shell docker-compose up -d ```
-- Copie d'un fichier vers le namenode : ```shell docker cp C:\Users\giani\Downloads\TD.csv namenode:/tmp/TD.csv```
-- Envoyer un fichier du namenode vers le PC : ```shell docker cp namenode:/tmp/TD.txt C:\Users\giani\Desktop\```
+- Lancement : ```docker-compose up -d```
+- Copie d'un fichier vers le namenode : ```docker cp C:\Users\giani\Downloads\TD.csv namenode:/tmp/TD.csv```
+- Envoyer un fichier du namenode vers le PC : ```docker cp namenode:/tmp/TD.txt C:\Users\giani\Desktop\```
 
 ## 2 - Hadoop
 
-- Rentrer dans le namenode : ```shell docker exec -it namenode bash ```
+- Rentrer dans le namenode : ```docker exec -it namenode bash ```
 - /tmp : Répertoire temporaire du système Linux
 
 ### Règles générales
@@ -18,21 +18,21 @@
 
 ### Commandes Hadoop
 
-- Création d'un répertoire : ```bash hadoop fs -mkdir -p /user/root/TD```
-- Liste répertoire : ```bash hdfs dfs -ls```
-- Mettre un fichier du namenode dans le répertoire : ```bash hdfs dfs -put /tmp/TD.csv /user/root/TD/```
-- Lancer un job Hadoop : ```bash hadoop jar TD.jar TD.WcDriver gutenberg TD ``` 
+- Création d'un répertoire : ```hadoop fs -mkdir -p /user/root/TD```
+- Liste répertoire : ```hdfs dfs -ls```
+- Mettre un fichier du namenode dans le répertoire : ```hdfs dfs -put /tmp/TD.csv /user/root/TD/```
+- Lancer un job Hadoop : ```hadoop jar TD.jar TD.WcDriver gutenberg TD ``` 
     - Cela va créer un dossier TD dans /user/root, 
     - gutenberg représente le répertoire contenant le fichier .txt d'entrée
     - TD.WcDriver représente la classe exécutée
-    - Créer le jar : ```shell jar cvf TD.jar TD ``` -> attention à bien être présent dans C:\Users\giani\IdeaProjects\MapReduce\out\production\MapReduce
-- Vérifier le résultat : ```bash hdfs dfs -cat /user/root/TD/part-r-00000``` ou ```bash hdfs dfs -head /user/root/TD/part-r-00000```
-- Récupérer le fichier : ```bash hdfs dfs -get /user/root/TD/part-r-00000 /tmp/TD.txt```
+    - Créer le jar : ```jar cvf TD.jar TD ``` -> attention à bien être présent dans C:\Users\giani\IdeaProjects\MapReduce\out\production\MapReduce
+- Vérifier le résultat : ```hdfs dfs -cat /user/root/TD/part-r-00000``` ou ```hdfs dfs -head /user/root/TD/part-r-00000```
+- Récupérer le fichier : ```hdfs dfs -get /user/root/TD/part-r-00000 /tmp/TD.txt```
 
 ## 3 - Spark
 
-- Lancer le terminal scala : ```bash ./opt/spark-3.1.2/bin/spark-shell``` -> être dans le namenode
-- Lancer le jar avec spark : ```bash /opt/spark-3.1.2/bin/spark-submit --class spark.AppSpark \tmp\TD.jar```
+- Lancer le terminal scala : ```./opt/spark-3.1.2/bin/spark-shell``` -> être dans le namenode
+- Lancer le jar avec spark : ```/opt/spark-3.1.2/bin/spark-submit --class spark.AppSpark \tmp\TD.jar```
 
 # Code
 
