@@ -22,10 +22,10 @@
 - Liste répertoire : ```bash hdfs dfs -ls```
 - Mettre un fichier du namenode dans le répertoire : ```bash hdfs dfs -put /tmp/TD.csv /user/root/TD/```
 - Lancer un job Hadoop : ```bash hadoop jar TD.jar TD.WcDriver gutenberg TD ``` 
-    > Cela va créer un dossier TD dans /user/root, 
-    > gutenberg représente le répertoire contenant le fichier .txt d'entrée
-    > TD.WcDriver représente la classe exécutée
-    > Créer le jar : ```shell jar cvf TD.jar TD ``` -> attention à bien être présent dans C:\Users\giani\IdeaProjects\MapReduce\out\production\MapReduce
+    - Cela va créer un dossier TD dans /user/root, 
+    - gutenberg représente le répertoire contenant le fichier .txt d'entrée
+    - TD.WcDriver représente la classe exécutée
+    - Créer le jar : ```shell jar cvf TD.jar TD ``` -> attention à bien être présent dans C:\Users\giani\IdeaProjects\MapReduce\out\production\MapReduce
 - Vérifier le résultat : ```bash hdfs dfs -cat /user/root/TD/part-r-00000``` ou ```bash hdfs dfs -head /user/root/TD/part-r-00000```
 - Récupérer le fichier : ```bash hdfs dfs -get /user/root/TD/part-r-00000 /tmp/TD.txt```
 
