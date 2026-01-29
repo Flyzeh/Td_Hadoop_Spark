@@ -21,7 +21,7 @@
 - Création d'un répertoire : ```hadoop fs -mkdir -p /user/root/TD```
 - Liste répertoire : ```hdfs dfs -ls```
 - Mettre un fichier du namenode dans le répertoire : ```hdfs dfs -put /tmp/TD.csv /user/root/TD/```
-- Lancer un job Hadoop : ```hadoop jar TD.jar TD.WcDriver gutenberg TD ``` 
+- Lancer un job Hadoop : ```hadoop jar /tmp/TD.jar TD.WcDriver gutenberg TD ``` 
     - Cela va créer un dossier TD dans /user/root, 
     - gutenberg représente le répertoire contenant le fichier .txt d'entrée
     - TD.WcDriver représente la classe exécutée
